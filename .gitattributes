@@ -1,0 +1,2 @@
+# Mark frontend static web assets as vendored so C# is detected as the primary language on GitHub
+frontend/* linguist-vendored

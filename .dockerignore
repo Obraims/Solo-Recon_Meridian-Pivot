@@ -1,0 +1,11 @@
+**/.dockerignore
+**/.git
+**/.gitignore
+**/.vs
+**/.vscode
+**/*.*proj.user
+**/*.db
+**/*.db-journal
+**/bin
+**/obj
+database/*.db
