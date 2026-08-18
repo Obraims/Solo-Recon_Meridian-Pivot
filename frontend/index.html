@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>StockSync — Inventory Synchronization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+/* StockSync — Sleek Modern Theme */
+:root {
+    --bg: #0A0E12;
+    --panel: #11161C;
+    --panel-alt: #0D1218;
+    --border: #1E2732;
+    --border-soft: #171F28;
+    --text-primary: #E8EDF2;
+    --text-secondary: #8A97A6;
+    --text-faint: #5B6773;
+    --teal: #2FD3C4;
+    --teal-dim: rgba(47, 211, 196, 0.12);
+    --amber: #F5A524;
+    --amber-dim: rgba(245, 165, 36, 0.12);
+    --cyan: #22D3EE;
+    --violet: #8B5CF6;
+    --magenta: #EC4899;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    padding: 24px 20px 48px;
+    min-height: 100vh;
+}
+
+.app-shell {
+    max-width: 1040px;
+    margin: 0 auto;
+}
+
+/* Navigation Header */
+.app-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-soft);
+    margin-bottom: 36px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--violet);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.logo-title {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.2px;
+    color: var(--text-primary);
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal);
+    background: var(--teal-dim);
+    border: 1px solid rgba(47, 211, 196, 0.3);
+    border-radius: 20px;
+    padding: 4px 12px 4px 10px;
+    letter-spacing: 0.2px;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--teal);
+    animation: ss-pulse 2s infinite;
+}
+
+@keyframes ss-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(47, 211, 196, 0.55); }
+    70% { box-shadow: 0 0 0 8px rgba(47, 211, 196, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(47, 211, 196, 0); }
+}
+
+.view-switcher {
+    display: flex;
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 4px;
+}
+
+.nav-tab {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.nav-tab.active {
+    background: var(--border);
+    color: var(--text-primary);
+}
+
+.nav-tab:hover:not(.active) {
+    color: var(--text-primary);
+}
+
+/* Toast Banner */
+.banner {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.banner-info {
+    background: var(--teal-dim);
+    color: var(--teal);
+    border: 1px solid rgba(47, 211, 196, 0.35);
+}
+
+.banner-danger {
+    background: rgba(248, 81, 73, 0.12);
+    color: #F85149;
+    border: 1px solid rgba(248, 81, 73, 0.35);
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.hero-glow {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    background: var(--violet);
+    opacity: 0.08;
+    filter: blur(70px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-headline {
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 18px;
+    max-width: 640px;
+}
+
+.text-accent {
+    color: var(--violet);
+}
+
+.hero-subtext {
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 520px;
+    margin-bottom: 28px;
+}
+
+.hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    appearance: none;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+.btn:hover { filter: brightness(1.1); }
+.btn:active { transform: translateY(1px); }
+
+.btn-accent {
+    background: var(--violet);
+    color: #05070A;
+}
+
+.btn-teal {
+    background: var(--teal);
+    color: #04201C;
+}
+
+.btn-outline-teal {
+    background: transparent;
+    border: 1px solid var(--teal);
+    color: var(--teal);
+}
+.btn-outline-teal:hover { background: var(--teal-dim); }
+
+.btn-block {
+    width: 100%;
+    justify-content: center;
+}
+
+.hero-meta-stats {
+    color: var(--text-faint);
+    font-size: 13px;
+}
+
+/* Hub Diagram Container */
+.hub-container {
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 32px 24px 20px;
+    margin-bottom: 40px;
+    overflow: hidden;
+}
+
+.hub-diagram {
+    position: relative;
+    width: 100%;
+    padding-top: 55%;
+}
+
+.hub-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.hub-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hub-pulse-ring {
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    animation: ss-ring 3s ease-out infinite;
+}
+
+@keyframes ss-ring {
+    0% { opacity: 0.6; transform: scale(0.85); }
+    100% { opacity: 0; transform: scale(1.35); }
+}
+
+.hub-center-icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--violet);
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.node-item {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.node-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    color: var(--text-primary);
+}
+
+.node-label {
+    font-size: 11px;
+    color: var(--text-faint);
+    white-space: nowrap;
+}
+
+.hub-caption {
+    color: var(--text-faint);
+    font-size: 12.5px;
+    margin-top: 12px;
+    text-align: center;
+}
+
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.feature-icon-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.feature-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.55;
+    margin-bottom: 16px;
+}
+
+.feature-status-footer {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding-top: 12px;
+}
+
+.dot-indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+/* Dashboard View Styles */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dash-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+}
+
+.dash-sub {
+    color: var(--text-secondary);
+    font-size: 13.5px;
+    margin-top: 2px;
+}
+
+/* Stats Bar */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+
+.stat-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-faint);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.text-teal { color: var(--teal); }
+.text-amber { color: var(--amber); }
+
+/* Panel Card */
+.panel-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.panel-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.panel-card-header h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.header-faint {
+    color: var(--text-faint);
+    font-weight: 400;
+}
+
+.header-with-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-card-body {
+    padding: 18px;
+}
+
+.form-desc {
+    color: var(--text-secondary);
+    font-size: 12.5px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+/* Tables */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+}
+
+.data-table th {
+    background-color: var(--panel-alt);
+    color: var(--text-faint);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border-soft);
+    text-align: left;
+}
+
+.data-table td {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border-soft);
+    color: var(--text-primary);
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.015);
+}
+
+/* Dashboard Grid 2 */
+.dashboard-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 20px;
+}
+
+.history-panel {
+    max-height: 420px;
+    display: flex;
+    flex-direction: column;
+}
+
+.history-wrapper {
+    overflow-y: auto;
+}
+
+/* Form inputs */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.form-group label {
+    font-size: 11.5px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.ss-select, .ss-input {
+    background: var(--panel-alt);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    font-family: var(--font-sans);
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.ss-select:focus, .ss-input:focus {
+    border-color: var(--teal);
+}
+
+/* Status Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 3px 9px;
+}
+
+.badge-synced {
+    color: var(--teal);
+    background: var(--teal-dim);
+    border: 1px solid rgba(47, 211, 196, 0.35);
+}
+
+.badge-needs-sync {
+    color: var(--amber);
+    background: var(--amber-dim);
+    border: 1px solid rgba(245, 165, 36, 0.35);
+}
+
+.badge-level-low {
+    color: var(--amber);
+}
+
+.badge-level-normal {
+    color: var(--text-secondary);
+}
+
+.badge-history-status {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.badge-history-updated {
+    color: var(--teal);
+    background: var(--teal-dim);
+}
+
+.badge-history-unchanged {
+    color: var(--text-faint);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.ss-mono {
+    font-family: var(--font-mono);
+}
+
+.hidden { display: none !important; }
+.text-center { text-align: center !important; }
+.spin-animation { animation: ss-spin 0.8s linear infinite; }
+
+@keyframes ss-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 780px) {
+    .dashboard-grid-2 { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .features-grid { grid-template-columns: 1fr; }
+}
+
+.app-footer {
+    text-align: center;
+    padding-top: 24px;
+    color: var(--text-faint);
+    font-size: 12.5px;
+    border-top: 1px solid var(--border-soft);
+    margin-top: 30px;
+}
+
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Top Navigation Header -->
+        <header class="app-nav">
+            <div class="brand">
+                <div class="logo-mark">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#05070A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+                </div>
+                <span class="logo-title">StockSync</span>
+            </div>
+            
+            <div class="nav-right">
+                <div class="status-pill">
+                    <span class="status-dot"></span>
+                    Service Online
+                </div>
+                <div class="view-switcher">
+                    <button id="btnNavOverview" class="nav-tab active">Overview</button>
+                    <button id="btnNavDashboard" class="nav-tab">Dashboard</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Toast Banner -->
+        <div id="syncResultBanner" class="banner banner-info hidden">
+            <span id="bannerText">Sync completed</span>
+        </div>
+
+        <!-- VIEW 1: OVERVIEW / LANDING -->
+        <main id="landingView" class="view-page">
+            <section class="hero-section">
+                <div class="hero-glow" aria-hidden="true"></div>
+                <div class="hero-content">
+                    <h1 class="hero-headline">
+                        Every channel, one<br>
+                        <span class="text-accent">source of truth.</span>
+                    </h1>
+                    <p class="hero-subtext">
+                        StockSync pulls every storefront and warehouse into one central hub, flags the moment stock drifts out of sync, and reconciles it in a single pass — with a full history of every correction.
+                    </p>
+                    <div class="hero-actions">
+                        <button id="btnHeroLaunch" class="btn btn-accent">
+                            Launch Dashboard
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </button>
+                        <span class="hero-meta-stats" id="heroMetaStats">
+                            Loading stats...
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Signature Hub Diagram Visual -->
+            <section class="hub-container">
+                <div class="hub-diagram">
+                    <svg viewBox="0 0 600 400" preserveAspectRatio="xMidYMid meet" class="hub-svg">
+                        <line x1="90" y1="64" x2="300" y2="200" stroke="#8B5CF6" stroke-opacity="0.35" stroke-width="1.5" />
+                        <line x1="510" y1="64" x2="300" y2="200" stroke="#8B5CF6" stroke-opacity="0.35" stroke-width="1.5" />
+                        <line x1="90" y1="336" x2="300" y2="200" stroke="#8B5CF6" stroke-opacity="0.35" stroke-width="1.5" />
+                        <line x1="510" y1="336" x2="300" y2="200" stroke="#8B5CF6" stroke-opacity="0.35" stroke-width="1.5" />
+                        
+                        <circle r="4.5" fill="#8B5CF6">
+                            <animate attributeName="cx" values="90;300" dur="2.6s" begin="0s" repeatCount="indefinite" />
+                            <animate attributeName="cy" values="64;200" dur="2.6s" begin="0s" repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="0;1;1;0" dur="2.6s" begin="0s" repeatCount="indefinite" />
+                        </circle>
+                        <circle r="4.5" fill="#8B5CF6">
+                            <animate attributeName="cx" values="510;300" dur="2.6s" begin="0.5s" repeatCount="indefinite" />
+                            <animate attributeName="cy" values="64;200" dur="2.6s" begin="0.5s" repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="0;1;1;0" dur="2.6s" begin="0.5s" repeatCount="indefinite" />
+                        </circle>
+                        <circle r="4.5" fill="#8B5CF6">
+                            <animate attributeName="cx" values="90;300" dur="2.6s" begin="1.0s" repeatCount="indefinite" />
+                            <animate attributeName="cy" values="336;200" dur="2.6s" begin="1.0s" repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="0;1;1;0" dur="2.6s" begin="1.0s" repeatCount="indefinite" />
+                        </circle>
+                        <circle r="4.5" fill="#8B5CF6">
+                            <animate attributeName="cx" values="510;300" dur="2.6s" begin="1.5s" repeatCount="indefinite" />
+                            <animate attributeName="cy" values="336;200" dur="2.6s" begin="1.5s" repeatCount="indefinite" />
+                            <animate attributeName="opacity" values="0;1;1;0" dur="2.6s" begin="1.5s" repeatCount="indefinite" />
+                        </circle>
+                    </svg>
+
+                    <!-- Central Hub Badge -->
+                    <div class="hub-center">
+                        <span class="hub-pulse-ring"></span>
+                        <div class="hub-center-icon">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#05070A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- 4 Channel Nodes -->
+                    <div class="node-item" style="left: 15%; top: 16%;">
+                        <div class="node-icon">
+                            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
+                        </div>
+                        <span class="node-label ss-mono">Storefront</span>
+                    </div>
+
+                    <div class="node-item" style="left: 85%; top: 16%;">
+                        <div class="node-icon">
+                            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                        </div>
+                        <span class="node-label ss-mono">Marketplace</span>
+                    </div>
+
+                    <div class="node-item" style="left: 15%; top: 84%;">
+                        <div class="node-icon">
+                            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                        </div>
+                        <span class="node-label ss-mono">Warehouse</span>
+                    </div>
+
+                    <div class="node-item" style="left: 85%; top: 84%;">
+                        <div class="node-icon">
+                            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.38-4.13A1 1 0 0 0 17.62 8H14"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg>
+                        </div>
+                        <span class="node-label ss-mono">Fulfillment</span>
+                    </div>
+                </div>
+                <p class="hub-caption">
+                    Every connected channel streams stock changes into StockSync's central hub.
+                </p>
+            </section>
+
+            <!-- Features Grid -->
+            <section class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon-badge" style="background: #22D3EE;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#05070A" stroke-width="2"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-8.58 3.91a2 2 0 0 1-1.66 0L3.17 12.5"/><path d="m22 17.5-8.58 3.91a2 2 0 0 1-1.66 0L3.17 17.5"/></svg>
+                    </div>
+                    <h3>Compare in real time</h3>
+                    <p>Source and destination stock sit side by side, so a mismatch is visible the moment it happens.</p>
+                    <div class="feature-status-footer">
+                        <span class="dot-indicator" style="background: #22D3EE;"></span>
+                        Status: Live
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-badge" style="background: #8B5CF6;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#05070A" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    </div>
+                    <h3>One-click reconciliation</h3>
+                    <p>Run a sync and StockSync walks through every out-of-date product, pushing the correct quantity downstream.</p>
+                    <div class="feature-status-footer">
+                        <span class="dot-indicator" style="background: #8B5CF6;"></span>
+                        Status: Ready
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-badge" style="background: #EC4899;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#05070A" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </div>
+                    <h3>A record of every change</h3>
+                    <p>Manual edits and automatic syncs land in the same timestamped log, so you can answer what changed and when.</p>
+                    <div class="feature-status-footer">
+                        <span class="dot-indicator" style="background: #EC4899;"></span>
+                        Status: Recorded
+                    </div>
+                </div>
+            </section>
+
+            <footer class="app-footer">
+                <p>Demo environment — inventory data is connected to ASP.NET Core Minimal API with SQLite persistence.</p>
+            </footer>
+        </main>
+
+        <!-- VIEW 2: MANAGER DASHBOARD -->
+        <main id="dashboardView" class="view-page hidden">
+            <!-- Header Row -->
+            <div class="dashboard-header">
+                <div>
+                    <h1 class="dash-title">StockSync</h1>
+                    <p class="dash-sub">Inventory Synchronization Dashboard</p>
+                </div>
+                <button id="syncBtn" class="btn btn-teal">
+                    <svg id="syncIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+                    <span>Sync Inventory</span>
+                </button>
+            </div>
+
+            <!-- Stats Bar -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                        Products
+                    </div>
+                    <div class="stat-value" id="statTotal">3</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2FD3C4" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                        In Sync
+                    </div>
+                    <div class="stat-value text-teal" id="statInSync">2</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F5A524" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                        Needs Sync
+                    </div>
+                    <div class="stat-value text-amber" id="statNeedsSync">1</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-label">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Last Sync
+                    </div>
+                    <div class="stat-value ss-mono" id="statLastSync">--:--</div>
+                </div>
+            </section>
+
+            <!-- Inventory Comparison Table Card -->
+            <section class="panel-card">
+                <div class="panel-card-header">
+                    <h2>Inventory Comparison</h2>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Source Stock</th>
+                                <th style="text-align: center;"></th>
+                                <th>Destination Stock</th>
+                                <th>Sync Status</th>
+                                <th>Stock Level</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <tr><td colspan="6" class="text-center">Loading inventory comparison...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Grid: Demo Control & Sync History -->
+            <div class="dashboard-grid-2">
+                <!-- Source Stock Update Form -->
+                <section class="panel-card">
+                    <div class="panel-card-header">
+                        <h2>Source Stock Update <span class="header-faint">(Demo Control)</span></h2>
+                    </div>
+                    <div class="panel-card-body">
+                        <p class="form-desc">Simulate warehouse stock changes to demonstrate source-to-destination synchronization.</p>
+                        <form id="updateSourceForm">
+                            <div class="form-group">
+                                <label for="selectProduct">Product</label>
+                                <select id="selectProduct" class="ss-select" required>
+                                    <option value="">Select product...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputQuantity">New Source Quantity</label>
+                                <input type="number" id="inputQuantity" class="ss-input" min="0" value="3" required>
+                            </div>
+                            <button type="submit" class="btn btn-outline-teal btn-block">Update Source</button>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Synchronization History Audit Log -->
+                <section class="panel-card history-panel">
+                    <div class="panel-card-header">
+                        <div class="header-with-icon">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B6773" stroke-width="2"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9c3.9 3.9 3.9 10.2 0 14.1"/></svg>
+                            <h2>Synchronization History</h2>
+                        </div>
+                    </div>
+                    <div class="table-wrapper history-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Change Details</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr><td colspan="4" class="text-center">No previous synchronization events recorded.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <footer class="app-footer">
+                <p>StockSync — Practical Inventory Synchronization Prototype (C# / ASP.NET Core Minimal API / SQLite)</p>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+// StockSync Frontend Application Script
+document.addEventListener("DOMContentLoaded", () => {
+    // UI Elements
+    const btnNavOverview = document.getElementById("btnNavOverview");
+    const btnNavDashboard = document.getElementById("btnNavDashboard");
+    const btnHeroLaunch = document.getElementById("btnHeroLaunch");
+    const landingView = document.getElementById("landingView");
+    const dashboardView = document.getElementById("dashboardView");
+    
+    const heroMetaStats = document.getElementById("heroMetaStats");
+    const syncBtn = document.getElementById("syncBtn");
+    const syncIcon = document.getElementById("syncIcon");
+    const syncResultBanner = document.getElementById("syncResultBanner");
+    const bannerText = document.getElementById("bannerText");
+
+    const statTotal = document.getElementById("statTotal");
+    const statInSync = document.getElementById("statInSync");
+    const statNeedsSync = document.getElementById("statNeedsSync");
+    const statLastSync = document.getElementById("statLastSync");
+
+    const comparisonTableBody = document.getElementById("comparisonTableBody");
+    const historyTableBody = document.getElementById("historyTableBody");
+    const selectProduct = document.getElementById("selectProduct");
+    const updateSourceForm = document.getElementById("updateSourceForm");
+    const inputQuantity = document.getElementById("inputQuantity");
+
+    let sourceItems = [];
+    let destItems = [];
+    let historyItems = [];
+    let isSyncing = false;
+
+    // View Switching Logic
+    function showView(viewName) {
+        if (viewName === "dashboard") {
+            landingView.classList.add("hidden");
+            dashboardView.classList.remove("hidden");
+            btnNavOverview.classList.remove("active");
+            btnNavDashboard.classList.add("active");
+        } else {
+            dashboardView.classList.add("hidden");
+            landingView.classList.remove("hidden");
+            btnNavDashboard.classList.remove("active");
+            btnNavOverview.classList.add("active");
+        }
+    }
+
+    btnNavOverview.addEventListener("click", () => showView("overview"));
+    btnNavDashboard.addEventListener("click", () => showView("dashboard"));
+    btnHeroLaunch.addEventListener("click", () => showView("dashboard"));
+
+    // Fetch All System Data
+    async function loadAllData() {
+        try {
+            const [sourceRes, destRes, historyRes] = await Promise.all([
+                fetch("/source/inventory"),
+                fetch("/destination/inventory"),
+                fetch("/sync/history")
+            ]);
+
+            if (sourceRes.ok && destRes.ok) {
+                sourceItems = await sourceRes.json();
+                destItems = await destRes.json();
+                renderComparison();
+                renderProductSelect();
+                updateStats();
+            }
+
+            if (historyRes.ok) {
+                historyItems = await historyRes.json();
+                renderHistory();
+            }
+        } catch (err) {
+            console.error("Failed to load inventory data:", err);
+        }
+    }
+
+    // Render Inventory Comparison Table
+    function renderComparison() {
+        if (!sourceItems.length) {
+            comparisonTableBody.innerHTML = '<tr><td colspan="6" class="text-center">No inventory items found.</td></tr>';
+            return;
+        }
+
+        const destMap = new Map();
+        destItems.forEach(item => destMap.set(item.id, item));
+
+        let html = "";
+        sourceItems.forEach(src => {
+            const dest = destMap.get(src.id);
+            const destQty = dest ? dest.quantity : 0;
+            const inSync = (src.quantity === destQty);
+            const statusLabel = inSync ? "In Sync" : "Needs Sync";
+            const statusClass = inSync ? "badge-synced" : "badge-needs-sync";
+            const statusIcon = inSync 
+                ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>'
+                : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>';
+            
+            const levelLabel = src.quantity < 5 ? "Low Stock" : "Normal";
+            const levelClass = src.quantity < 5 ? "badge-level-low" : "badge-level-normal";
+            const pName = src.productName || src.ProductName || "Product";
+
+            html += `
+                <tr>
+                    <td style="font-weight: 600;">${escapeHtml(pName)}</td>
+                    <td class="ss-mono">${src.quantity}</td>
+                    <td style="text-align: center; color: var(--text-faint);">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </td>
+                    <td class="ss-mono">${destQty}</td>
+                    <td>
+                        <span class="badge ${statusClass}">
+                            ${statusIcon}
+                            ${statusLabel}
+                        </span>
+                    </td>
+                    <td class="${levelClass}">${levelLabel}</td>
+                </tr>
+            `;
+        });
+
+        comparisonTableBody.innerHTML = html;
+    }
+
+    // Render Select Dropdown for Source Stock Update Form
+    function renderProductSelect() {
+        const selectedVal = selectProduct.value;
+        selectProduct.innerHTML = '<option value="">Select product...</option>';
+        sourceItems.forEach(item => {
+            const pName = item.productName || item.ProductName || "Product";
+            const opt = document.createElement("option");
+            opt.value = item.id;
+            opt.textContent = `${pName} (Current: ${item.quantity})`;
+            selectProduct.appendChild(opt);
+        });
+
+        if (selectedVal && sourceItems.some(i => i.id == selectedVal)) {
+            selectProduct.value = selectedVal;
+        } else if (sourceItems.length > 0) {
+            selectProduct.value = sourceItems[0].id;
+            inputQuantity.value = sourceItems[0].quantity;
+        }
+    }
+
+    selectProduct.addEventListener("change", () => {
+        const item = sourceItems.find(i => i.id == selectProduct.value);
+        if (item) {
+            inputQuantity.value = item.quantity;
+        }
+    });
+
+    // Render Synchronization History Audit Log
+    function renderHistory() {
+        if (!historyItems.length) {
+            historyTableBody.innerHTML = '<tr><td colspan="4" class="text-center">No previous synchronization events recorded.</td></tr>';
+            return;
+        }
+
+        let html = "";
+        historyItems.forEach(h => {
+            const pName = h.productName || h.ProductName || "Product";
+            const details = h.changeDetails || h.ChangeDetails || "Updated";
+            const status = h.status || h.Status || "SYNCED";
+            const timeStr = formatTime(h.changeTime || h.ChangeTime);
+
+            const isUpdated = status === "UPDATED" || status === "SYNCED";
+            const badgeClass = isUpdated ? "badge-history-updated" : "badge-history-unchanged";
+
+            html += `
+                <tr>
+                    <td style="font-weight: 600;">${escapeHtml(pName)}</td>
+                    <td class="ss-mono" style="color: var(--text-secondary);">${escapeHtml(details)}</td>
+                    <td>
+                        <span class="badge-history-status ${badgeClass}">
+                            ${escapeHtml(status)}
+                        </span>
+                    </td>
+                    <td class="ss-mono" style="color: var(--text-faint);">${timeStr}</td>
+                </tr>
+            `;
+        });
+
+        historyTableBody.innerHTML = html;
+    }
+
+    // Update Top Summary Stats
+    function updateStats() {
+        const total = sourceItems.length;
+        const destMap = new Map();
+        destItems.forEach(item => destMap.set(item.id, item));
+
+        let inSync = 0;
+        sourceItems.forEach(src => {
+            const dest = destMap.get(src.id);
+            if (dest && dest.quantity === src.quantity) {
+                inSync++;
+            }
+        });
+        const needsSync = total - inSync;
+
+        statTotal.textContent = total;
+        statInSync.textContent = inSync;
+        statNeedsSync.textContent = needsSync;
+
+        heroMetaStats.textContent = `${total} products tracked · ${inSync} in sync · ${needsSync} needs sync`;
+    }
+
+    // Trigger Synchronization
+    syncBtn.addEventListener("click", async () => {
+        if (isSyncing) return;
+        isSyncing = true;
+        syncBtn.disabled = true;
+        syncIcon.classList.add("spin-animation");
+
+        try {
+            const res = await fetch("/sync", { method: "POST" });
+            if (res.ok) {
+                const data = await res.json();
+                statLastSync.textContent = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+                
+                showBanner(`Sync completed: ${data.changesCount || 0} product(s) reconciled.`, false);
+                await loadAllData();
+            } else {
+                showBanner("Synchronization failed.", true);
+            }
+        } catch (err) {
+            console.error(err);
+            showBanner("Error triggering synchronization.", true);
+        } finally {
+            isSyncing = false;
+            syncBtn.disabled = false;
+            syncIcon.classList.remove("spin-animation");
+        }
+    });
+
+    // Form Submit: Update Source Stock
+    updateSourceForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = selectProduct.value;
+        const qty = parseInt(inputQuantity.value, 10);
+
+        if (!id || isNaN(qty)) return;
+
+        try {
+            const res = await fetch(`/source/inventory/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ quantity: qty })
+            });
+
+            if (res.ok) {
+                showBanner("Source inventory updated successfully.", false);
+                await loadAllData();
+            } else {
+                showBanner("Failed to update source inventory.", true);
+            }
+        } catch (err) {
+            console.error(err);
+            showBanner("Error updating source inventory.", true);
+        }
+    });
+
+    // Helper functions
+    function showBanner(msg, isError) {
+        bannerText.textContent = msg;
+        syncResultBanner.className = isError ? "banner banner-danger" : "banner banner-info";
+        syncResultBanner.classList.remove("hidden");
+        setTimeout(() => {
+            syncResultBanner.classList.add("hidden");
+        }, 4000);
+    }
+
+    function formatTime(isoString) {
+        if (!isoString) return "--:--";
+        try {
+            const d = new Date(isoString);
+            return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+        } catch {
+            return isoString;
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // Initial load
+    loadAllData();
+});
+
+    </script>
+</body>
+</html>
