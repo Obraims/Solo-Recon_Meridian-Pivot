@@ -1,0 +1,26 @@
+# fly.toml app configuration file for StockSync
+app = "stocksync-solo-recon"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ASPNETCORE_ENVIRONMENT = "Production"
+
+[mounts]
+  source = "stocksync_data"
+  destination = "/app/database"
+
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+
+  [[services.ports]]
+    handlers = ["http", "tls"]
+    port = 443
+
+  [[services.ports]]
+    handlers = ["http"]
+    port = 80
+    force_https = true
